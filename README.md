@@ -4,7 +4,7 @@
 3. Click Settings
 4. Click add new repository
 5. Enter joshs85 for Owner
-6. Enter ST-TankUtility for the Name
+6. Enter ST_TankUtility for the Name
 7. Enter master for the branch.
 8. Click save when completed
 10. On the My Smart Apps page, click Update from repo and check the check box next to tank-utility-connect.groovy
