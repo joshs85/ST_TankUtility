@@ -29,8 +29,6 @@ preferences {
     page(name: "settings", title: "Settings", content: "settingsPage", install:true)
     }
 
-import groovy.time.TimeCategory
-
 private static String TankUtilAPIEndPoint() { return "https://data.tankutility.com" }
 private static String TankUtilityDataEndPoint() { return "https://data.tankutility.com" }
 private static getChildName() { return "Tank Utility" }
@@ -189,9 +187,7 @@ private getAPIToken() {
             {
                 if (resp.data.token) {
                     atomicState.APIToken = resp?.data?.token
-                    use( TimeCategory ) {
-                        atomicState.APITokenExpirationTime = (new Date()) + 1.days
-                    }
+                    atomicState.APITokenExpirationTime = now() + (24 * 60 * 60 * 1000)
                     log.info "Token refresh Success.  Token expires at ${atomicState.APITokenExpirationTime}"
                     return true
                 }
@@ -213,8 +209,16 @@ private getAPIToken() {
 
 private isTokenExpired() 
 {
-	def currentDate = new Date()
-    if (atomicState.APITokenExpirationTime == null || currentDate >= atomicState.APITokenExpirationTime) {return true} else {return false}
+	def currentDate = now()
+    if (atomicState.APITokenExpirationTime == null)
+    {
+    	return true
+    }
+    else
+    {
+    	def ExpirationDate = atomicState.APITokenExpirationTime
+        if (currentDate >= ExpirationDate) {return true} else {return false}
+    }
 }
 
 def pollChildren(){
