@@ -29,6 +29,8 @@ preferences {
     page(name: "settings", title: "Settings", content: "settingsPage", install:true)
     }
 
+import groovy.time.TimeCategory
+
 private static String TankUtilAPIEndPoint() { return "https://data.tankutility.com" }
 private static String TankUtilityDataEndPoint() { return "https://data.tankutility.com" }
 private static getChildName() { return "Tank Utility" }
@@ -187,7 +189,10 @@ private getAPIToken() {
             {
                 if (resp.data.token) {
                     atomicState.APIToken = resp?.data?.token
-                    log.info "Token refresh Success."
+                    use( TimeCategory ) {
+                        atomicState.APITokenExpirationTime = (new Date()) + 1.days
+                    }
+                    log.info "Token refresh Success.  Token expires at ${atomicState.APITokenExpirationTime}"
                     return true
                 }
                 else
@@ -206,8 +211,18 @@ private getAPIToken() {
     }
 }
 
+private isTokenExpired() 
+{
+	def currentDate = new Date()
+    if (atomicState.APITokenExpirationTime == null || currentDate >= atomicState.APITokenExpirationTime) {return true} else {return false}
+}
+
 def pollChildren(){
 		log.info "starting pollChildren"
+        if (isTokenExpired()) {
+        	log.info "API token expired at ${atomicState.APITokenExpirationTime}.  Refreshing API Token"
+        	getAPIToken()
+        }
         def devices = atomicState.devices
         def deviceData = RefreshDeviceStatus()
 		devices.each {dev ->
